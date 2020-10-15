@@ -39,7 +39,7 @@ func (c *DescribeCommand) Exec(in io.Reader, out io.Writer) error {
 		}
 		// search for service ID
 		var err error
-		serviceID, err = getServiceIDFromServiceName(c.name, c.Globals)
+		serviceID, err = GetIDFromName(c.name, c.Globals)
 		if err != nil {
 			return err
 		}

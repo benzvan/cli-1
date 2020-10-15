@@ -5,7 +5,8 @@ import (
 	"github.com/fastly/go-fastly/fastly"
 )
 
-func getServiceIDFromServiceName(name string, g *config.Data) (string, error) {
+// GetIDFromName returns the ID of a service using the fastly search endpoint
+func GetIDFromName(name string, g *config.Data) (string, error) {
 	searchInput := fastly.SearchServiceInput{
 		Name: name,
 	}

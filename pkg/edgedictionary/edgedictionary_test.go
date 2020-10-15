@@ -71,6 +71,11 @@ func TestDictionaryCreate(t *testing.T) {
 			wantError: "error parsing arguments: required flag --name not provided",
 		},
 		{
+			args:      []string{"dictionary", "create", "--version", "1", "--name", "no service"},
+			api:       mock.API{CreateDictionaryFn: createDictionaryOK},
+			wantError: "error reading service: no service ID or service name found",
+		},
+		{
 			args:       []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist"},
 			api:        mock.API{CreateDictionaryFn: createDictionaryOK},
 			wantOutput: createDictionaryOutput,
@@ -79,6 +84,22 @@ func TestDictionaryCreate(t *testing.T) {
 			args:      []string{"dictionary", "create", "--version", "1", "--service-id", "123", "--name", "denylist"},
 			api:       mock.API{CreateDictionaryFn: createDictionaryDuplicate},
 			wantError: "Duplicate record",
+		},
+		{
+			args: []string{"dictionary", "create", "--version", "1", "--service-name", "Foo", "--name", "denylist"},
+			api: mock.API{
+				CreateDictionaryFn: createDictionaryOK,
+				SearchServiceFn:    searchServiceResp,
+			},
+			wantOutput: createDictionaryOutput,
+		},
+		{
+			args: []string{"dictionary", "create", "--version", "1", "--service-name", "Not Found", "--name", "denylist"},
+			api: mock.API{
+				CreateDictionaryFn: createDictionaryOK,
+				SearchServiceFn:    searchServiceResp,
+			},
+			wantError: errServiceSearchTest.Error(),
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -140,6 +161,15 @@ func TestDeleteDictionary(t *testing.T) {
 			testutil.AssertString(t, testcase.wantOutput, out.String())
 		})
 	}
+}
+
+var errServiceSearchTest = errors.New("service search error")
+
+func searchServiceResp(i *fastly.SearchServiceInput) (*fastly.Service, error) {
+	if i.Name == "Foo" {
+		return &fastly.Service{ID: "123"}, nil
+	}
+	return &fastly.Service{}, errServiceSearchTest
 }
 
 func describeDictionaryOK(i *fastly.GetDictionaryInput) (*fastly.Dictionary, error) {

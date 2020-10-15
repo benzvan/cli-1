@@ -7,6 +7,7 @@ import (
 	"github.com/fastly/cli/pkg/compute/manifest"
 	"github.com/fastly/cli/pkg/config"
 	"github.com/fastly/cli/pkg/errors"
+	"github.com/fastly/cli/pkg/service"
 	"github.com/fastly/cli/pkg/text"
 	"github.com/fastly/go-fastly/fastly"
 )
@@ -14,8 +15,9 @@ import (
 // CreateCommand calls the Fastly API to create a service.
 type CreateCommand struct {
 	common.Base
-	manifest manifest.Data
-	Input    fastly.CreateDictionaryInput
+	manifest    manifest.Data
+	Input       fastly.CreateDictionaryInput
+	serviceName string
 }
 
 // NewCreateCommand returns a usable command registered under the parent.
@@ -25,6 +27,7 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 	c.manifest.File.Read(manifest.Filename)
 	c.CmdClause = parent.Command("create", "Create a Fastly edge dictionary on a Fastly service version")
 	c.CmdClause.Flag("service-id", "Service ID").Short('s').StringVar(&c.manifest.Flag.ServiceID)
+	c.CmdClause.Flag("service-name", "Service name (ignored if SERVICE-ID is provided)").StringVar(&c.serviceName)
 	c.CmdClause.Flag("version", "Number of service version").Required().IntVar(&c.Input.Version)
 	c.CmdClause.Flag("name", "Name of Dictionary").Short('n').Required().StringVar(&c.Input.Name)
 	return &c
@@ -34,7 +37,15 @@ func NewCreateCommand(parent common.Registerer, globals *config.Data) *CreateCom
 func (c *CreateCommand) Exec(in io.Reader, out io.Writer) error {
 	serviceID, source := c.manifest.ServiceID()
 	if source == manifest.SourceUndefined {
-		return errors.ErrNoServiceID
+		if c.serviceName == "" {
+			return errors.ErrNoServiceIDOrName
+		}
+		// search for service ID
+		var err error
+		serviceID, err = service.GetIDFromName(c.serviceName, c.Globals)
+		if err != nil {
+			return err
+		}
 	}
 	c.Input.Service = serviceID
 

@@ -566,6 +566,9 @@ COMMANDS
     Create a Fastly edge dictionary on a Fastly service version
 
     -s, --service-id=SERVICE-ID  Service ID
+        --service-name=SERVICE-NAME
+                                 Service name (ignored if SERVICE-ID is
+                                 provided)
         --version=VERSION        Number of service version
     -n, --name=NAME              Name of Dictionary
 
