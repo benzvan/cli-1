@@ -145,7 +145,7 @@ func TestServiceDescribe(t *testing.T) {
 		{
 			args:      []string{"service", "describe"},
 			api:       mock.API{GetServiceDetailsFn: describeServiceOK},
-			wantError: "error reading service: no service ID found",
+			wantError: "error reading service: no service ID or service name found",
 		},
 		{
 			args:       []string{"service", "describe", "--service-id", "123"},
@@ -176,6 +176,22 @@ func TestServiceDescribe(t *testing.T) {
 			args:      []string{"service", "describe", "--service-id", "123"},
 			api:       mock.API{GetServiceDetailsFn: describeServiceError},
 			wantError: errTest.Error(),
+		},
+		{
+			args: []string{"service", "describe", "--name", "Foo"},
+			api: mock.API{
+				GetServiceDetailsFn: describeServiceOK,
+				SearchServiceFn:     searchServiceOK,
+			},
+			wantOutput: describeServiceShortOutput,
+		},
+		{
+			args: []string{"service", "describe", "--name", "Foo"},
+			api: mock.API{
+				GetServiceDetailsFn: describeServiceOK,
+				SearchServiceFn:     searchServiceError,
+			},
+			wantError: errServiceSearchTest.Error(),
 		},
 	} {
 		t.Run(strings.Join(testcase.args, " "), func(t *testing.T) {
@@ -526,7 +542,7 @@ func getServiceError(*fastly.GetServiceInput) (*fastly.Service, error) {
 
 func describeServiceOK(i *fastly.GetServiceInput) (*fastly.ServiceDetail, error) {
 	return &fastly.ServiceDetail{
-		ID:         "123",
+		ID:         i.ID,
 		Name:       "Foo",
 		Type:       "wasm",
 		CustomerID: "mycustomerid",
@@ -657,7 +673,7 @@ Versions: 2
 func searchServiceOK(i *fastly.SearchServiceInput) (*fastly.Service, error) {
 	return &fastly.Service{
 		ID:         "123",
-		Name:       "Foo",
+		Name:       i.Name,
 		Type:       "wasm",
 		CustomerID: "mycustomerid",
 		UpdatedAt:  testutil.MustParseTimeRFC3339("2010-11-15T19:01:02Z"),
@@ -681,6 +697,12 @@ func searchServiceOK(i *fastly.SearchServiceInput) (*fastly.Service, error) {
 			},
 		},
 	}, nil
+}
+
+var errServiceSearchTest = errors.New("service search error")
+
+func searchServiceError(i *fastly.SearchServiceInput) (*fastly.Service, error) {
+	return nil, errServiceSearchTest
 }
 
 var searchServiceShortOutput = strings.TrimSpace(`

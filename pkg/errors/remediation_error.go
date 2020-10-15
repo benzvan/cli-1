@@ -80,3 +80,10 @@ var BugRemediation = strings.Join([]string{
 var ServiceIDRemediation = strings.Join([]string{
 	"Please provide one via the --service-id flag or within your package manifest",
 }, " ")
+
+// ServiceIDOrNameRemediation suggests provide a service ID via --service-id flag
+// or package manifest or provide a name via the --name flag.
+var ServiceIDOrNameRemediation = strings.Join([]string{
+	"Please provide a service id via the --service-id flag or within your package",
+	"manifest, or provide a service name via the --name flag",
+}, " ")

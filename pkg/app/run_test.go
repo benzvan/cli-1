@@ -145,6 +145,7 @@ SUBCOMMANDS
     Show detailed information about a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID
+    -n, --name=NAME              Service name (ignored if SERVICE-ID provided)
 
   service update [<flags>]
     Update a Fastly service
@@ -213,6 +214,7 @@ COMMANDS
     Show detailed information about a Fastly service
 
     -s, --service-id=SERVICE-ID  Service ID
+    -n, --name=NAME              Service name (ignored if SERVICE-ID provided)
 
   service update [<flags>]
     Update a Fastly service
